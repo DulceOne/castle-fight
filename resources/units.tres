@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UintResource" load_steps=6 format=3 uid="uid://0e1us1f7i0o"]
+
+[ext_resource type="Script" path="res://interfaces/units_resource.gd" id="1_c8ri7"]
+[ext_resource type="Script" path="res://interfaces/unit.gd" id="2_g6bt1"]
+
+[sub_resource type="Resource" id="Resource_rt1p7"]
+script = ExtResource("2_g6bt1")
+name = "Warrior"
+health = 100.0
+price = 125
+id = "warior"
+cooldown = 15.0
+model = "models/units/warior/mesh.obj"
+
+[sub_resource type="Resource" id="Resource_y73xp"]
+script = ExtResource("2_g6bt1")
+name = "Mage"
+health = 75.0
+price = 150
+id = "mage"
+cooldown = 20.0
+model = "models/units/warior/mesh.obj"
+
+[sub_resource type="Resource" id="Resource_66kgw"]
+script = ExtResource("2_g6bt1")
+name = "King of The Table"
+health = 400.0
+price = 600
+id = "kingOfTheTable"
+cooldown = 25.0
+model = "models/units/warior/mesh.obj"
+
+[resource]
+script = ExtResource("1_c8ri7")
+units = Array[ExtResource("2_g6bt1")]([SubResource("Resource_rt1p7"), SubResource("Resource_y73xp"), SubResource("Resource_66kgw")])

@@ -1,0 +1,239 @@
+[gd_scene load_steps=13 format=3 uid="uid://cfclydstafutb"]
+
+[ext_resource type="ArrayMesh" uid="uid://ckeg56iapmafr" path="res://models/tower/towers.obj" id="1_cl14h"]
+[ext_resource type="ArrayMesh" uid="uid://be7rkhv48pfbh" path="res://models/tower2/Only Tower.obj" id="3_rqcif"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3cwvj"]
+sky_top_color = Color(0.0694699, 0.472068, 0.724387, 1)
+sky_horizon_color = Color(0.553228, 0.667132, 0.688781, 1)
+sky_energy_multiplier = 2.5
+ground_bottom_color = Color(0.143441, 0.196459, 0.0307371, 1)
+ground_horizon_color = Color(0.553228, 0.667132, 0.688781, 1)
+
+[sub_resource type="Sky" id="Sky_qlxgp"]
+sky_material = SubResource("ProceduralSkyMaterial_3cwvj")
+
+[sub_resource type="Environment" id="Environment_fdxs2"]
+background_mode = 2
+sky = SubResource("Sky_qlxgp")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="GDScript" id="GDScript_tn7tc"]
+script/source = "extends Camera3D;
+
+var state = State.state;
+@onready var screen_size = get_viewport().size;
+
+
+func _input(event):
+	if event is InputEventMouseButton:
+		zoom(event);
+
+func _process(delta: float): move();
+
+func _physics_process(delta: float) -> void:
+	set_raycast_intersect();
+	
+	
+func zoom(event):
+	if !event.is_pressed(): return;
+	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		global_transform.origin += -global_transform.basis.z;
+	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		global_transform.origin += global_transform.basis.z;
+
+func move():
+	if !screen_size: return;
+	var mouse_position = get_viewport().get_mouse_position();
+	if mouse_position.x > -4 and mouse_position.x < 2: position.x -= 1;
+	if mouse_position.x > screen_size.x - 2: position.x += 1;
+	
+	if mouse_position.y > -4 and mouse_position.y < 2: position.z -= 1;
+	if mouse_position.y > screen_size.y - 2: position.z += 1;
+
+func set_raycast_intersect():
+	var mouse_position = get_viewport().get_mouse_position();
+	var length = 1000;
+	var from = project_ray_origin(mouse_position);
+	var to = from + project_ray_normal(mouse_position) * length;
+	var space = get_world_3d().direct_space_state;
+	var query = PhysicsRayQueryParameters3D.new()
+	query.from = from;
+	query.to = to;
+	var result = space.intersect_ray(query);
+	state.raycast_intersect = result;
+	return result;
+"
+
+[sub_resource type="GDScript" id="GDScript_jcqmw"]
+script/source = "extends Node;
+const MeshHelper = preload(\"res://helpers/mesh.gd\");
+
+var state = State.state;
+
+func build_barrak(barrak: Barrak):
+	abort();
+	print(\"barrak: \" + barrak.name);
+	#if barrak.price <= State.state.currency: //TODO connect calculation
+	var instance = MeshHelper.instantiate_mesh(barrak.model);
+
+	if instance: 
+		var scale = barrak.build_model_scale;
+		instance.scale = Vector3(scale, scale, scale);
+		state.selected_build_mesh = instance;
+		state.selected_build = barrak;
+		self.add_child(instance);
+
+func abort():
+	self.remove_child(state.selected_build_mesh);
+	state.selected_build_mesh = null;
+	state.selected_build = null;
+
+func _process(delta: float):
+	draw_build_on_cursor();
+
+func _input(event: InputEvent):
+	if event is InputEventMouse and event.is_pressed() and state.selected_build:
+		if event.button_index == 2: abort();
+		if event.button_index == 1: build(state.selected_build);
+
+func draw_build_on_cursor():
+	if !state.selected_build_mesh or !state.raycast_intersect: return;
+	state.selected_build_mesh.position = state.raycast_intersect.position;
+
+func build(build):
+	var node: StaticBody3D = %Building.duplicate()
+	$\"..\".add_child(node);
+	if node: node.make(build, state.raycast_intersect.position);
+"
+
+[sub_resource type="GDScript" id="GDScript_71nvp"]
+script/source = "extends Node;
+var state = State.state;
+var button = preload(\"res://components/common/button/button.tscn\");
+
+func _ready() -> void:
+	draw_menu();
+
+func draw_menu():
+	for index in range(state.barraks.size()):
+		var barrak = state.barraks[index];
+		var btn: Button = button.instantiate();
+		btn.make(30, barrak.icon);
+		self.add_child(btn);
+		btn.custom_minimum_size = Vector2(100, 100);
+		btn.pressed.connect(build_signal.bind(barrak))
+
+func build_signal(barrak: Barrak):
+	var node = get_node(\"/root/Game/BuildManager\");
+	node.build_barrak(barrak);
+"
+
+[sub_resource type="BoxMesh" id="BoxMesh_ufyrd"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_ifckg"]
+data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="GDScript" id="GDScript_qo0fq"]
+script/source = "extends Node;
+
+func _input(event: InputEvent):
+	if Input.is_action_just_pressed(\"Escape\"):
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED);
+"
+
+[sub_resource type="GDScript" id="GDScript_6txsj"]
+script/source = "extends StaticBody3D;
+const MeshHelper = preload(\"res://helpers/mesh.gd\");
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+func make(build, position: Vector3):
+	var mesh_instance = $MeshInstance3D.duplicate();
+	if !mesh_instance: return;
+	print(\"Mesh: \", mesh_instance);
+	var scale = build.build_model_scale;
+	mesh_instance.mesh = MeshHelper.instantiate_mesh(build.model);;
+	mesh_instance.scale = Vector3(scale, scale, scale);
+	self.add_child(mesh_instance);
+	self.position = position;
+"
+
+[node name="Game" type="Node2D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fdxs2")
+
+[node name="Towers" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -128.016, 5.39145, -0.239136)
+mesh = ExtResource("1_cl14h")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866026, 0, -0.866026, 0.5, -70.318, 36.054, 23.543)
+fov = 99.0
+script = SubResource("GDScript_tn7tc")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(0.999682, 0.0252173, 0, -0.0252173, 0.999682, 0, 0, 0, 1, -38.7003, 26.9599, -0.642187)
+visible = false
+light_energy = 2.59
+omni_range = 4096.0
+
+[node name="OnlyTower" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.02, 0, 0, 0, 0.02, 0, 0, 0, 0.02, 90.5836, -1.7926, -1.33664)
+mesh = ExtResource("3_rqcif")
+
+[node name="BuildManager" type="Node" parent="."]
+script = SubResource("GDScript_jcqmw")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MenuContainer" type="GridContainer" parent="CanvasLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -108.0
+offset_top = -95.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 0
+grow_vertical = 0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+columns = 3
+script = SubResource("GDScript_71nvp")
+
+[node name="Terrain" type="StaticBody3D" parent="."]
+
+[node name="Cube" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(277.366, 0, 0, 0, 1.08138, 0, 0, 0, 152.625, -12.3662, 0, -1.01029)
+mesh = SubResource("BoxMesh_ufyrd")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain"]
+transform = Transform3D(277.366, 0, 0, 0, 1.08138, 0, 0, 0, 152.625, -12.3662, 0, -1.01029)
+shape = SubResource("ConcavePolygonShape3D_ifckg")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.815128, 0.579281, 0, -0.579281, 0.815128, 3.64693, 35.884, 13.8605)
+shadow_enabled = true
+directional_shadow_max_distance = 200.0
+
+[node name="Debug" type="Node" parent="."]
+script = SubResource("GDScript_qo0fq")
+
+[node name="Building" type="StaticBody3D" parent="."]
+unique_name_in_owner = true
+script = SubResource("GDScript_6txsj")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Building"]

@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://cfclydstafutb"]
+
+[ext_resource type="ArrayMesh" uid="uid://ckeg56iapmafr" path="res://models/tower/towers .obj" id="1_cl14h"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ufyrd"]
+
+[sub_resource type="GDScript" id="GDScript_tn7tc"]
+script/source = "extends Camera3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _input(event):
+	if event is InputEventMouseButton:
+		print(event.button_index)
+		if event.button_index == 4:
+			self.translate(Vector3(self.translation.x, self.translation.y + 1, self.translation.y))
+"
+
+[node name="Game" type="Node2D"]
+
+[node name="Towers" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.396134, 5.39145, -0.239136)
+mesh = ExtResource("1_cl14h")
+
+[node name="terain" type="MeshInstance3D" parent="."]
+transform = Transform3D(122.634, 0, 0, 0, 1, 0, 0, 0, 85.8514, -12.0505, 0, -0.768475)
+mesh = SubResource("BoxMesh_ufyrd")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.0165775, 0.499725, -0.866025, 0.0287132, 0.865549, 0.5, 0.99945, -0.0331552, -3.78552e-08, -18.8437, 18.0136, 0)
+fov = 99.0
+script = SubResource("GDScript_tn7tc")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(0.999682, 0.0252173, 0, -0.0252173, 0.999682, 0, 0, 0, 1, -17.3206, 15.1131, -0.653112)
+light_energy = 2.59
+omni_range = 4096.0

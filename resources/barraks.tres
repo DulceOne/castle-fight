@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="BarraksResource" load_steps=6 format=3 uid="uid://c88j1nomxum4s"]
+
+[ext_resource type="Script" path="res://interfaces/barrak.gd" id="1_vj1gf"]
+[ext_resource type="Script" path="res://interfaces/barraks_resource.gd" id="2_qh7o6"]
+
+[sub_resource type="Resource" id="Resource_koukm"]
+script = ExtResource("1_vj1gf")
+name = "Warior Camp"
+price = 120
+model = "models/buildings/warior_camp/mesh.obj"
+icon = "icons/tower_1.png"
+build_model_scale = 1.0
+units = Array[String](["warior"])
+
+[sub_resource type="Resource" id="Resource_pjnho"]
+script = ExtResource("1_vj1gf")
+name = "School of magic"
+price = 200
+model = "models/buildings/school_of_magic/mesh.obj"
+icon = "icons/tower_2.png"
+build_model_scale = 0.02
+units = Array[String](["mage"])
+
+[sub_resource type="Resource" id="Resource_4mujh"]
+script = ExtResource("1_vj1gf")
+name = "Hero Obelisc"
+price = 350
+model = "models/buildings/warior_camp/mesh.obj"
+icon = "icons/tower_3.png"
+build_model_scale = 1.0
+units = Array[String](["kingOfTheTable"])
+
+[resource]
+script = ExtResource("2_qh7o6")
+barraks = Array[ExtResource("1_vj1gf")]([SubResource("Resource_koukm"), SubResource("Resource_pjnho"), SubResource("Resource_4mujh")])
