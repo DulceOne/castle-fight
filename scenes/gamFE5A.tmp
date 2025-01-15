@@ -116,13 +116,13 @@ func _ready() -> void:
 	draw_menu();
 
 func draw_menu():
-	for index in range(state.buildings.size()):
-		var building = state.buildings[index];
+	for index in range(state.barraks.size()):
+		var barrak = state.barraks[index];
 		var btn: Button = button.instantiate();
-		btn.make(30, building.icon);
+		btn.make(30, barrak.icon);
 		self.add_child(btn);
 		btn.custom_minimum_size = Vector2(100, 100);
-		btn.pressed.connect(build_signal.bind(building))
+		btn.pressed.connect(build_signal.bind(barrak))
 
 func build_signal(building: Building):
 	var node = get_node(\"/root/Game/BuildManager\");

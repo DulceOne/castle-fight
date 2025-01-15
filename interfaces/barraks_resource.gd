@@ -1,4 +1,4 @@
-extends Resource
+extends Resource;
 
-class_name BarraksResource
-@export var barraks:Array[Barrak] = []
+class_name BuildingsResource
+@export var buildings: Array[Building] = [];

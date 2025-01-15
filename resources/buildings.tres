@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="BuildingsResource" load_steps=6 format=3 uid="uid://c88j1nomxum4s"]
+
+[ext_resource type="Script" path="res://interfaces/building.gd" id="1_t73ip"]
+[ext_resource type="Script" path="res://interfaces/barraks_resource.gd" id="2_1pgua"]
+
+[sub_resource type="Resource" id="Resource_c04a5"]
+script = ExtResource("1_t73ip")
+name = "Warior Camp"
+price = 120
+model = "models/buildings/warior_camp/mesh.obj"
+icon = "icons/tower_1.png"
+build_model_scale = 1.0
+units = Array[String](["warior"])
+build_time = 15
+
+[sub_resource type="Resource" id="Resource_fqie3"]
+script = ExtResource("1_t73ip")
+name = "School of magic"
+price = 200
+model = "models/buildings/school_of_magic/mesh.obj"
+icon = "icons/tower_2.png"
+build_model_scale = 0.02
+units = Array[String](["mage"])
+build_time = 20
+
+[sub_resource type="Resource" id="Resource_6i13v"]
+script = ExtResource("1_t73ip")
+name = "Heroes Obelisk "
+price = 350
+model = "models/buildings/warior_camp/mesh.obj"
+icon = "icons/tower_3.png"
+build_model_scale = 1.0
+units = Array[String](["kingOfTheTable"])
+build_time = 30
+
+[resource]
+script = ExtResource("2_1pgua")
+buildings = Array[ExtResource("1_t73ip")]([SubResource("Resource_c04a5"), SubResource("Resource_fqie3"), SubResource("Resource_6i13v")])

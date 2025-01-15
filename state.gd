@@ -1,9 +1,9 @@
 extends Node;
 
 var state: GameState;
-var resource =  preload("res://resources/barraks.tres");
+var resource = preload("res://resources/buildings.tres");
 
 func _ready():
 	state = GameState.new();
-	for barrak in resource.barraks:
-		if barrak: state.barraks.append(barrak);
+	for building in resource.buildings:
+		if building: state.buildings.append(building);
