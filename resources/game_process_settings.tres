@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GameProcessSettings" load_steps=2 format=3 uid="uid://k2c3d2tj03ak"]
+
+[ext_resource type="Script" path="res://interfaces/game_process_settings.gd" id="1_fkna5"]
+
+[resource]
+script = ExtResource("1_fkna5")
+income_cooldown = 10
+initial_currency = 190
+max_chees = 2
+default_income = 2

@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://cfclydstafutb"]
+[gd_scene load_steps=17 format=3 uid="uid://cfclydstafutb"]
 
 [ext_resource type="ArrayMesh" uid="uid://ckeg56iapmafr" path="res://models/buildings/warior_camp/mesh.obj" id="1_cl14h"]
 [ext_resource type="ArrayMesh" uid="uid://be7rkhv48pfbh" path="res://models/buildings/school_of_magic/mesh.obj" id="3_rqcif"]
+[ext_resource type="Texture2D" uid="uid://bdgg2iujj52ck" path="res://icons/currency.png" id="3_uw5c1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3cwvj"]
 sky_top_color = Color(0.0694699, 0.472068, 0.724387, 1)
@@ -68,8 +69,8 @@ func set_raycast_intersect():
 
 [sub_resource type="GDScript" id="GDScript_jcqmw"]
 script/source = "extends Node;
-const MeshHelper = preload(\"res://helpers/mesh.gd\");
 
+var MeshHelper = preload(\"res://helpers/mesh.gd\");
 var state = State.state;
 
 func build(building: Building):
@@ -101,9 +102,13 @@ func draw_build_on_cursor():
 	state.selected_build_mesh.position = state.raycast_intersect.position;
 
 func spawn(build):
-	var node: StaticBody3D = %Building.duplicate();
-	$\"..\".add_child(node);
-	if node: node.make(build, state.raycast_intersect.position);
+	var building_node: StaticBody3D = %Building.duplicate();
+	var economic_manager =  %EconomicManager;
+	economic_manager.add_income(build.income_weight);
+	$\"..\".add_child(building_node);
+	if building_node: 
+		building_node.make(build, state.raycast_intersect.position);
+		
 	abort();
 "
 
@@ -122,11 +127,19 @@ func draw_menu():
 		btn.make(30, building.icon);
 		self.add_child(btn);
 		btn.custom_minimum_size = Vector2(100, 100);
-		btn.pressed.connect(build_signal.bind(building))
+		btn.pressed.connect(build_signal.bind(building));
 
 func build_signal(building: Building):
 	var node = get_node(\"/root/Game/BuildManager\");
 	node.build(building);
+"
+
+[sub_resource type="GDScript" id="GDScript_sacbl"]
+script/source = "extends RichTextLabel
+var state: GameState = State.state;
+
+func _process(delta: float) -> void:
+	self.text = str(state.currency);
 "
 
 [sub_resource type="BoxMesh" id="BoxMesh_ufyrd"]
@@ -234,7 +247,35 @@ func make(unit: Unit, postion: Vector3):
 	self.position = postion;
 "
 
+[sub_resource type="GDScript" id="GDScript_h35xh"]
+script/source = "extends Node;
+
+var TimeHelper = preload(\"res://helpers/time.gd\");
+var state: GameState = State.state;
+var resource = preload(\"res://resources/game_process_settings.tres\");
+var last_income_time = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+
+func _ready():
+	state.currency = resource.initial_currency;
+	state.income_cooldown = resource.income_cooldown;
+	state.income = resource.default_income;
+
+func _process(delta: float):
+	income()
+	
+func income():
+	var current_time = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+	print(last_income_time + (state.income_cooldown * 1000) - current_time)
+	if (last_income_time + (state.income_cooldown * 1000) - current_time) <= 0:
+		state.currency += state.income;
+		last_income_time = current_time;
+
+func add_income(value: int):
+	state.income += value;
+"
+
 [node name="Game" type="Node2D"]
+position = Vector2(20, 14)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_fdxs2")
@@ -261,24 +302,49 @@ mesh = ExtResource("3_rqcif")
 [node name="BuildManager" type="Node" parent="."]
 script = SubResource("GDScript_jcqmw")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="."]
 
-[node name="MenuContainer" type="GridContainer" parent="CanvasLayer"]
+[node name="MenuContainer" type="GridContainer" parent="UI"]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -108.0
-offset_top = -95.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = -168.0
+offset_top = -62.0
+offset_right = -18.0
+offset_bottom = -12.0
 grow_horizontal = 0
 grow_vertical = 0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 columns = 3
 script = SubResource("GDScript_71nvp")
+
+[node name="VSplitContainer" type="HSplitContainer" parent="UI"]
+custom_minimum_size = Vector2(20, 20)
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 182.0
+offset_bottom = 71.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UI/VSplitContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_font_sizes/bold_italics_font_size = 40
+theme_override_font_sizes/italics_font_size = 40
+theme_override_font_sizes/mono_font_size = 40
+theme_override_font_sizes/normal_font_size = 40
+theme_override_font_sizes/bold_font_size = 40
+text = "190"
+script = SubResource("GDScript_sacbl")
+
+[node name="TextureRect" type="TextureRect" parent="UI/VSplitContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 0
+texture = ExtResource("3_uw5c1")
+expand_mode = 5
 
 [node name="Terrain" type="StaticBody3D" parent="."]
 
@@ -309,3 +375,7 @@ script = SubResource("GDScript_6txsj")
 script = SubResource("GDScript_0gwe6")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Unit"]
+
+[node name="EconomicManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = SubResource("GDScript_h35xh")

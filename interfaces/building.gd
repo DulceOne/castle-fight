@@ -8,3 +8,4 @@ class_name Building
 @export var build_model_scale: float;
 @export var units: Array[String] = [];
 @export var build_time: int;
+@export var income_weight: int;

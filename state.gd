@@ -7,3 +7,4 @@ func _ready():
 	state = GameState.new();
 	for building in resource.buildings:
 		if building: state.buildings.append(building);
+	

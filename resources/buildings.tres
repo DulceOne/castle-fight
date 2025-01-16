@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="BuildingsResource" load_steps=6 format=3 uid="uid://c88j1nomxum4s"]
+[gd_resource type="Resource" script_class="BuildingsResource" load_steps=6 format=3 uid="uid://bggsnrbg4on0m"]
 
 [ext_resource type="Script" path="res://interfaces/building.gd" id="1_t73ip"]
-[ext_resource type="Script" path="res://interfaces/barraks_resource.gd" id="2_1pgua"]
+[ext_resource type="Script" path="res://interfaces/buildings_resource.gd" id="2_r7na1"]
 
-[sub_resource type="Resource" id="Resource_c04a5"]
+[sub_resource type="Resource" id="Resource_i85tw"]
 script = ExtResource("1_t73ip")
 name = "Warior Camp"
 price = 120
@@ -12,8 +12,9 @@ icon = "icons/tower_1.png"
 build_model_scale = 1.0
 units = Array[String](["warior"])
 build_time = 15
+income_weight = 5
 
-[sub_resource type="Resource" id="Resource_fqie3"]
+[sub_resource type="Resource" id="Resource_5ypky"]
 script = ExtResource("1_t73ip")
 name = "School of magic"
 price = 200
@@ -22,17 +23,19 @@ icon = "icons/tower_2.png"
 build_model_scale = 0.02
 units = Array[String](["mage"])
 build_time = 20
+income_weight = 10
 
-[sub_resource type="Resource" id="Resource_6i13v"]
+[sub_resource type="Resource" id="Resource_sd5mg"]
 script = ExtResource("1_t73ip")
-name = "Heroes Obelisk "
+name = "Heroes Obelisk"
 price = 350
 model = "models/buildings/warior_camp/mesh.obj"
 icon = "icons/tower_3.png"
 build_model_scale = 1.0
 units = Array[String](["kingOfTheTable"])
 build_time = 30
+income_weight = 20
 
 [resource]
-script = ExtResource("2_1pgua")
-buildings = Array[ExtResource("1_t73ip")]([SubResource("Resource_c04a5"), SubResource("Resource_fqie3"), SubResource("Resource_6i13v")])
+script = ExtResource("2_r7na1")
+buildings = Array[ExtResource("1_t73ip")]([SubResource("Resource_i85tw"), SubResource("Resource_5ypky"), SubResource("Resource_sd5mg")])
