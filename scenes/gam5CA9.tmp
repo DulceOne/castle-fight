@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://cfclydstafutb"]
+[gd_scene load_steps=17 format=3 uid="uid://cfclydstafutb"]
 
-[ext_resource type="PackedScene" uid="uid://c18kgx4ucewj5" path="res://models/buildings/castle/scene.tscn" id="2_0w0fd"]
+[ext_resource type="ArrayMesh" uid="uid://ckeg56iapmafr" path="res://models/buildings/warior_camp/mesh.obj" id="1_cl14h"]
+[ext_resource type="ArrayMesh" uid="uid://be7rkhv48pfbh" path="res://models/buildings/school_of_magic/mesh.obj" id="3_rqcif"]
 [ext_resource type="Texture2D" uid="uid://bdgg2iujj52ck" path="res://icons/currency.png" id="3_uw5c1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3cwvj"]
@@ -71,15 +72,14 @@ script/source = "extends Node;
 
 var MeshHelper = preload(\"res://helpers/mesh.gd\");
 var state = State.state;
-var build_scene = preload(\"res://objects/building/building.tscn\");
 
-func build(building: BuildingResource):
+func build(building: Building):
 	abort();
 	#if build.price <= state.currency: //TODO connect calculation
 	var instance = MeshHelper.instantiate_mesh(building.model);
 	if instance: 
 		var scale = building.build_model_scale;
-		self.instance.scale = Vector3(scale, scale, scale);
+		instance.scale = Vector3(scale, scale, scale);
 		state.selected_build_mesh = instance;
 		state.selected_build = building;
 		self.add_child(instance);
@@ -101,12 +101,11 @@ func draw_build_on_cursor():
 	if !state.selected_build_mesh or !state.raycast_intersect: return;
 	state.selected_build_mesh.position = state.raycast_intersect.position;
 
-func spawn(build: BuildingResource):
-	var building_node = build_scene.instantiate();
-	
+func spawn(build: Building):
+	var building_node: StaticBody3D = %Building.duplicate();
 	var economic_manager =  %EconomicManager;
 	economic_manager.add_income(build.income_weight);
-	self.get_parent().add_child(building_node);
+	$\"..\".add_child(building_node);
 	if building_node: 
 		building_node.make(build, state.raycast_intersect.position);
 	abort();
@@ -129,7 +128,7 @@ func draw_menu():
 		btn.custom_minimum_size = Vector2(100, 100);
 		btn.pressed.connect(build_signal.bind(building));
 
-func build_signal(building: BuildingResource):
+func build_signal(building: Building):
 	var node = get_node(\"/root/Game/BuildManager\");
 	node.build(building);
 "
@@ -143,7 +142,6 @@ func _process(delta: float) -> void:
 "
 
 [sub_resource type="BoxMesh" id="BoxMesh_ufyrd"]
-size = Vector3(1, 0.1, 1)
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_ifckg"]
 data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
@@ -154,6 +152,143 @@ script/source = "extends Node;
 func _input(event: InputEvent):
 	if Input.is_action_just_pressed(\"Escape\"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED);
+"
+
+[sub_resource type="GDScript" id="GDScript_6txsj"]
+script/source = "extends StaticBody3D;
+const MeshHelper = preload(\"res://helpers/mesh.gd\");
+const TimeHelper = preload(\"res://helpers/time.gd\");
+var resource = load(\"res://resources/units.tres\");
+
+@onready var camera = $\"../Camera3D\";
+var last_spawn_time: int;
+var cooldown = 10;
+var unit: Unit;
+var spawn_position: Vector3;
+var build_mesh_size: Vector3;
+var unit_mesh_size: Vector3;
+var cooldown_instance: Label3D = null;
+var current_build = null;
+
+func _process(delta: float) -> void:
+	_draw_cooldown();
+	if unit and spawn_position: spawn(unit, spawn_position);
+
+func make(build, position: Vector3):
+	var mesh_instance: MeshInstance3D = $MeshInstance3D;
+	if !mesh_instance: return;
+	current_build = build;
+	var scale = build.build_model_scale;
+	mesh_instance.set_mesh(MeshHelper.instantiate_mesh(build.model).mesh);
+	mesh_instance.set_scale(Vector3(scale, scale, scale));
+	self.add_child(mesh_instance);
+	self.position = position;
+	unit = populate_unit(build.units[0]);
+	spawn_position = get_spawn_position(mesh_instance, self.position);
+	last_spawn_time = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+	spawn(unit, spawn_position);
+
+func populate_unit(id: String):
+	#TODO Performance loss here
+	\"\"\"
+	Resolution:
+		- maping unit resource to key value data type
+		- use embeded resources in the tres file
+	\"\"\"
+	var unit = null;
+	if resource:
+		for u in resource.units:
+			if u.id == id: unit = u;
+	return unit;
+
+func spawn(unit: Unit, position: Vector3):
+	cooldown = unit.cooldown;
+	var current_time = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+	if ((last_spawn_time + (cooldown * 1000)) - current_time) > 0: return;
+
+	var node = $\"../Unit\".duplicate();
+	$\"..\".add_child(node);
+	node.make(unit, position);
+	last_spawn_time = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+
+func get_spawn_position(build_mesh: MeshInstance3D, position: Vector3):
+	build_mesh_size = MeshHelper.get_scaled_size(build_mesh);
+	return Vector3(position.x + (build_mesh_size.x / 2) + 5, position.y, position.z);
+	
+func _draw_cooldown(): #Move cooldown to separate node like nameplate
+	if !current_build: return;
+
+	var current_time_in_ms = TimeHelper.time_to_ms(Time.get_time_dict_from_system());
+	var coolwn_in_sec = (current_time_in_ms - last_spawn_time) / 1000;
+	if !cooldown_instance:
+		cooldown_instance = Label3D.new();
+		cooldown_instance.modulate = Color(15 / 255.0, 67 / 255.0, 54 / 255.0, 1);
+		self.add_child(cooldown_instance);
+
+	cooldown_instance.font_size = 14 * global_transform.origin.z;
+	cooldown_instance.position = to_local(Vector3(self.position.x, build_mesh_size.y + 1, self.position.z))
+	cooldown_instance.rotation = camera.global_transform.basis.get_euler();
+	cooldown_instance.text = str(max(0, cooldown - coolwn_in_sec));
+"
+
+[sub_resource type="GDScript" id="GDScript_0gwe6"]
+script/source = "extends Node3D;
+const MeshHelper = preload(\"res://helpers/mesh.gd\");
+const UnitStatus = preload(\"res://constants/unit.gd\").UnitStatus;
+
+var unit_status = UnitStatus.Idle;
+var unit_model = null;
+var target: Node = null;
+
+func _process(delta: float):
+	movement(delta);
+	animate();
+	update_target();
+
+func make(unit: Unit, postion: Vector3):
+	var mesh_instance: MeshInstance3D = $MeshInstance3D;
+	if !mesh_instance: return;
+	unit_model = load(unit.model).instantiate();
+	self.add_child(unit_model);
+	self.position = postion;
+
+
+func movement(delta: float):
+	if !unit_model: return;
+
+	if !near_attack_range(): 
+		unit_status = UnitStatus.Run;
+		var direction = (Vector3(102, 0.541, -8.362) - self.position).normalized();
+		self.position += direction * 2 * delta;
+		#self.position = self.position.lerp(Vector3(104, 0.541, -8.362), delta * 0.01);
+		self.look_at($\"../EnemyCastle\".global_transform.origin, Vector3.UP);
+		self.rotate_y(deg_to_rad(180));
+	else: battle();
+
+
+func animate():
+	if !unit_model: return;
+
+	if unit_status == UnitStatus.Idle:
+		unit_model.get_node(\"AnimationPlayer\").play(\"Idle\");
+
+	if unit_status == UnitStatus.Run:
+		unit_model.get_node(\"AnimationPlayer\").play(\"Running_A\");
+
+	if unit_status == UnitStatus.Battle:
+		unit_model.get_node(\"AnimationPlayer\").play(\"1H_Melee_Attack_Chop\");
+
+func near_attack_range():
+	var enemy_position = Vector3(102, 0.541, -8.362); #TODO find near enemy unit or build
+	var distance = global_position.distance_to(enemy_position);
+	return distance <= 1;
+	
+func update_target():
+	if !target: target = $\"../EnemyCastle\";
+	
+func battle():
+	unit_status = UnitStatus.Battle;
+	#if target and 
 "
 
 [sub_resource type="GDScript" id="GDScript_h35xh"]
@@ -182,18 +317,18 @@ func add_income(value: int):
 	state.income += value;
 "
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ogxwl"]
-radius = 5.212
-height = 38.332
-
 [node name="Game" type="Node2D"]
 position = Vector2(20, 14)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_fdxs2")
 
+[node name="Towers" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -128.016, 5.39145, -0.239136)
+mesh = ExtResource("1_cl14h")
+
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.422618, 0.906308, 0, -0.906308, 0.422618, -70.318, 36.054, 23.543)
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866026, 0, -0.866026, 0.5, -70.318, 36.054, 23.543)
 fov = 99.0
 script = SubResource("GDScript_tn7tc")
 
@@ -269,20 +404,21 @@ directional_shadow_max_distance = 200.0
 [node name="Debug" type="Node" parent="."]
 script = SubResource("GDScript_qo0fq")
 
+[node name="Building" type="StaticBody3D" parent="."]
+unique_name_in_owner = true
+script = SubResource("GDScript_6txsj")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Building"]
+
+[node name="Unit" type="Node3D" parent="."]
+script = SubResource("GDScript_0gwe6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Unit"]
+
 [node name="EconomicManager" type="Node" parent="."]
 unique_name_in_owner = true
 script = SubResource("GDScript_h35xh")
 
-[node name="EnemyCastle" type="StaticBody3D" parent="." groups=["Building"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.066, 0, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyCastle"]
-shape = SubResource("CapsuleShape3D_ogxwl")
-
-[node name="building_castle_blue2" parent="EnemyCastle" instance=ExtResource("2_0w0fd")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0)
-
-[node name="Castle" type="StaticBody3D" parent="."]
-
-[node name="building_castle_blue2" parent="Castle" instance=ExtResource("2_0w0fd")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -131.146, 0, -0.43837)
+[node name="EnemyCastle" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.02, 0, 0, 0, 0.02, 0, 0, 0, 0.02, 104.833, 0.54069, -8.3617)
+mesh = ExtResource("3_rqcif")

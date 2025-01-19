@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://c18kgx4ucewj5"]
+
+[ext_resource type="PackedScene" uid="uid://0vp638s7t2w0" path="res://models/buildings/castle/default.gltf" id="1_72s3x"]
+
+[node name="building_castle_blue2" instance=ExtResource("1_72s3x")]

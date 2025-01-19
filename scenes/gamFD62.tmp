@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://cfclydstafutb"]
+[gd_scene load_steps=16 format=3 uid="uid://cfclydstafutb"]
 
-[ext_resource type="PackedScene" uid="uid://c18kgx4ucewj5" path="res://models/buildings/castle/scene.tscn" id="2_0w0fd"]
+[ext_resource type="ArrayMesh" uid="uid://ckeg56iapmafr" path="res://models/buildings/warior_camp/mesh.obj" id="1_cl14h"]
+[ext_resource type="ArrayMesh" uid="uid://be7rkhv48pfbh" path="res://models/buildings/school_of_magic/mesh.obj" id="3_rqcif"]
 [ext_resource type="Texture2D" uid="uid://bdgg2iujj52ck" path="res://icons/currency.png" id="3_uw5c1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3cwvj"]
@@ -79,7 +80,7 @@ func build(building: BuildingResource):
 	var instance = MeshHelper.instantiate_mesh(building.model);
 	if instance: 
 		var scale = building.build_model_scale;
-		self.instance.scale = Vector3(scale, scale, scale);
+		instance.scale = Vector3(scale, scale, scale);
 		state.selected_build_mesh = instance;
 		state.selected_build = building;
 		self.add_child(instance);
@@ -183,7 +184,7 @@ func add_income(value: int):
 "
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ogxwl"]
-radius = 5.212
+radius = 2.408
 height = 38.332
 
 [node name="Game" type="Node2D"]
@@ -191,6 +192,10 @@ position = Vector2(20, 14)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_fdxs2")
+
+[node name="Towers" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -128.016, 5.39145, -0.239136)
+mesh = ExtResource("1_cl14h")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.422618, 0.906308, 0, -0.906308, 0.422618, -70.318, 36.054, 23.543)
@@ -276,13 +281,10 @@ script = SubResource("GDScript_h35xh")
 [node name="EnemyCastle" type="StaticBody3D" parent="." groups=["Building"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.066, 0, 0)
 
+[node name="Mesh" type="MeshInstance3D" parent="EnemyCastle"]
+transform = Transform3D(0.02, 0, 0, 0, 0.02, 0, 0, 0, 0.02, 0, 0, 0)
+mesh = ExtResource("3_rqcif")
+skeleton = NodePath("../..")
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyCastle"]
 shape = SubResource("CapsuleShape3D_ogxwl")
-
-[node name="building_castle_blue2" parent="EnemyCastle" instance=ExtResource("2_0w0fd")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0)
-
-[node name="Castle" type="StaticBody3D" parent="."]
-
-[node name="building_castle_blue2" parent="Castle" instance=ExtResource("2_0w0fd")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -131.146, 0, -0.43837)

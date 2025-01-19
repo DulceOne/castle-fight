@@ -1,6 +1,6 @@
 extends Resource;
 
-class_name Building
+class_name BuildingResource
 @export var name: String;
 @export var price: int;
 @export var model: String;

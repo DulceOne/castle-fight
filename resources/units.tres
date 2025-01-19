@@ -1,7 +1,10 @@
-[gd_resource type="Resource" script_class="UintResource" load_steps=6 format=3 uid="uid://0e1us1f7i0o"]
+[gd_resource type="Resource" script_class="UintResource" load_steps=9 format=3 uid="uid://0e1us1f7i0o"]
 
 [ext_resource type="Script" path="res://interfaces/units_resource.gd" id="1_c8ri7"]
 [ext_resource type="Script" path="res://interfaces/unit.gd" id="2_g6bt1"]
+[ext_resource type="PackedScene" uid="uid://dvylim067itoc" path="res://models/units/warior/scene.tscn" id="3_rgw3b"]
+[ext_resource type="PackedScene" uid="uid://d4imks6o0mskf" path="res://models/units/mage/scene.tscn" id="4_otcs6"]
+[ext_resource type="PackedScene" uid="uid://duieu5tacp46e" path="res://models/units/king_of_the_table/scene.tscn" id="5_4ojet"]
 
 [sub_resource type="Resource" id="Resource_rt1p7"]
 script = ExtResource("2_g6bt1")
@@ -9,8 +12,9 @@ name = "Warrior"
 health = 100.0
 price = 125
 id = "warior"
-cooldown = 15.0
-model = "models/units/warior/mesh.obj"
+cooldown = 5.0
+model = ExtResource("3_rgw3b")
+attack_range = 1.3
 
 [sub_resource type="Resource" id="Resource_y73xp"]
 script = ExtResource("2_g6bt1")
@@ -18,8 +22,9 @@ name = "Mage"
 health = 75.0
 price = 150
 id = "mage"
-cooldown = 20.0
-model = "models/units/warior/mesh.obj"
+cooldown = 5.0
+model = ExtResource("4_otcs6")
+attack_range = 12.0
 
 [sub_resource type="Resource" id="Resource_66kgw"]
 script = ExtResource("2_g6bt1")
@@ -27,8 +32,9 @@ name = "King of The Table"
 health = 400.0
 price = 600
 id = "kingOfTheTable"
-cooldown = 25.0
-model = "models/units/warior/mesh.obj"
+cooldown = 5.0
+model = ExtResource("5_4ojet")
+attack_range = 1.3
 
 [resource]
 script = ExtResource("1_c8ri7")

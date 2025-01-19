@@ -6,7 +6,7 @@ var selected_build_mesh = null;
 var currency = 0;
 var chees = 0;
 var castle_hp = 100;
-var buildings: Array[Building] = [];
+var buildings: Array[BuildingResource] = [];
 var raycast_intersect: Dictionary;
 var income_cooldown: int;
 var income: int;
